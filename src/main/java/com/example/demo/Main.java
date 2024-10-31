@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.List;
 
 
-public class Demo1Application {
+public class Main {
 
     public static void main(String[] args) throws JAXBException {
         List<Lecture> lectures = loadLecturesFromXML();
