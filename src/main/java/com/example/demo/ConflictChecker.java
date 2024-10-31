@@ -1,5 +1,9 @@
 package com.example.demo;
 
+import com.example.demo.data.Booking;
+import com.example.demo.data.Curriculum;
+import com.example.demo.data.Lecture;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
