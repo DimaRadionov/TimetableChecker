@@ -14,11 +14,11 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws JAXBException {
-        List<Lecture> lectures = loadLecturesFromXML();
-        List<Curriculum> curricula = loadCurriculaFromXML();
+        List<Lecture> lectures = loadLecturesFromXML("timetable.xml");
+        List<Curriculum> curricula = loadCurriculaFromXML("timetable.xml");
 
-        ConflictChecker checker = new ConflictChecker(lectures, curricula);
-        checker.checkConflicts();
+        ConflictChecker conflictCheckerchecker = new ConflictChecker(lectures, curricula);
+        conflictCheckerchecker.checkConflicts();
 
     }
 
@@ -28,11 +28,11 @@ public class Main {
         return (University) unmarshaller.unmarshal(new File(filePath));
     }
 
-    private static List<Lecture> loadLecturesFromXML() throws JAXBException {
-        return loadUniversityFromXML("timetable.xml").getLectures();
+    private static List<Lecture> loadLecturesFromXML(String filePath) throws JAXBException {
+        return loadUniversityFromXML(filePath).getLectures();
     }
 
-    private static List<Curriculum> loadCurriculaFromXML() throws JAXBException {
-        return loadUniversityFromXML("timetable.xml").getCurricula();
+    private static List<Curriculum> loadCurriculaFromXML(String filePath) throws JAXBException {
+        return loadUniversityFromXML(filePath).getCurricula();
     }
 }

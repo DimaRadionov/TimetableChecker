@@ -3,19 +3,20 @@ package com.example.demo;
 import com.example.demo.data.Booking;
 import com.example.demo.data.Curriculum;
 import com.example.demo.data.Lecture;
+import com.example.demo.data.TimeSlot;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConflictChecker {
     private List<Lecture> lectures;
     private List<Curriculum> curricula;
 
+    private Map<String, Map<String, List<TimeSlot>>> timeSlots;
+
     public ConflictChecker(List<Lecture> lectures, List<Curriculum> curricula) {
         this.lectures = lectures;
         this.curricula = curricula;
+        this.timeSlots = new HashMap<>();
     }
 
     public void checkConflicts() {
@@ -39,23 +40,14 @@ public class ConflictChecker {
 
     private List<String> checkRoomConflicts() {
         List<String> conflicts = new ArrayList<>();
-        Map<String, List<BookingRecord>> roomBookings = new HashMap<>();
 
         for (Lecture lecture : lectures) {
             for (Booking booking : lecture.getRoomBookings()) {
-                String key = booking.getRoom() + "-" + booking.getWeekday();
+                String roomKey = "room:" + booking.getRoom();
+                String weekday = booking.getWeekday();
+                TimeSlot newSlot = new TimeSlot(lecture.getId(), booking.getStartTime(), booking.getEndTime());
 
-                for (BookingRecord existingRecord : roomBookings.getOrDefault(key, new ArrayList<>())) {
-                    if (isTimeOverlap(booking, existingRecord.booking)) {
-                        conflicts.add("Room conflict between lecture " + lecture.getId() +
-                                " and lecture " + existingRecord.lectureId +
-                                " in " + booking.getRoom() +
-                                " on " + booking.getWeekday());
-                    }
-                }
-
-                roomBookings.putIfAbsent(key, new ArrayList<>());
-                roomBookings.get(key).add(new BookingRecord(lecture.getId(), booking));
+                conflicts.addAll(addAndCheckConflict(roomKey, weekday, newSlot, "Room"));
             }
         }
         return conflicts;
@@ -65,27 +57,17 @@ public class ConflictChecker {
         List<String> conflicts = new ArrayList<>();
 
         for (Curriculum curriculum : curricula) {
-            Map<String, List<BookingRecord>> curriculumBookings = new HashMap<>();
+            String curriculumKey = "curriculum:" + curriculum.getName();
 
             for (String lectureId : curriculum.getLectureId()) {
                 Lecture lecture = findLectureById(lectureId);
                 if (lecture == null) continue;
 
                 for (Booking booking : lecture.getRoomBookings()) {
-                    String key = booking.getWeekday();
+                    String weekday = booking.getWeekday();
+                    TimeSlot newSlot = new TimeSlot(lecture.getId(), booking.getStartTime(), booking.getEndTime());
 
-                    for (BookingRecord existingRecord : curriculumBookings.getOrDefault(key, new ArrayList<>())) {
-                        if (isTimeOverlap(booking, existingRecord.booking)) {
-                            conflicts.add("Curricular conflict in " + curriculum.getName() +
-                                    " between lecture " + lecture.getId() +
-                                    " and lecture " + existingRecord.lectureId +
-                                    " on " + booking.getWeekday() +
-                                    " at " + booking.getStartTime());
-                        }
-                    }
-
-                    curriculumBookings.putIfAbsent(key, new ArrayList<>());
-                    curriculumBookings.get(key).add(new BookingRecord(lecture.getId(), booking));
+                    conflicts.addAll(addAndCheckConflict(curriculumKey, weekday, newSlot, "Curricular"));
                 }
             }
         }
@@ -93,24 +75,29 @@ public class ConflictChecker {
         return conflicts;
     }
 
+    private List<String> addAndCheckConflict(String key, String weekday, TimeSlot newSlot, String conflictType) {
+        List<String> conflicts = new ArrayList<>();
+
+        timeSlots.putIfAbsent(key, new HashMap<>());
+        Map<String, List<TimeSlot>> daySlots = timeSlots.get(key);
+
+        daySlots.putIfAbsent(weekday, new ArrayList<>());
+        List<TimeSlot> slots = daySlots.get(weekday);
+
+        for (TimeSlot existingSlot : slots) {
+            if (newSlot.overlaps(existingSlot)) {
+                conflicts.add(conflictType + " conflict between lecture " +
+                        newSlot.getLectureId() + " and lecture " +
+                        existingSlot.getLectureId() + " on " + weekday +
+                        " at " + newSlot.getStartTime());
+            }
+        }
+
+        slots.add(newSlot);
+        return conflicts;
+    }
+
     private Lecture findLectureById(String id) {
         return lectures.stream().filter(lecture -> lecture.getId().equals(id)).findFirst().orElse(null);
     }
-
-    private boolean isTimeOverlap(Booking b1, Booking b2) {
-        return b1.getEndTime().compareTo(b2.getStartTime()) > 0 &&
-                b1.getStartTime().compareTo(b2.getEndTime()) < 0;
-    }
-
-    // Helper class to store lecture ID and booking together
-    private static class BookingRecord {
-        String lectureId;
-        Booking booking;
-
-        BookingRecord(String lectureId, Booking booking) {
-            this.lectureId = lectureId;
-            this.booking = booking;
-        }
-    }
-
 }
