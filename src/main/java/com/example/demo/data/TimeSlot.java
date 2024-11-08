@@ -16,9 +16,9 @@ public class TimeSlot {
         this.endTime = endTime;
     }
 
-    public boolean overlaps(TimeSlot other) {
-        return this.endTime.compareTo(other.startTime) > 0 &&
-                this.startTime.compareTo(other.endTime) < 0;
+    public boolean overlaps(TimeSlot timeSlot) {
+        return this.endTime.compareTo(timeSlot.startTime) > 0 &&
+                this.startTime.compareTo(timeSlot.endTime) < 0;
     }
 }
 
