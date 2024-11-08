@@ -102,7 +102,6 @@ public class ConflictChecker {
                 b1.getStartTime().compareTo(b2.getEndTime()) < 0;
     }
 
-    // Helper class to store lecture ID and booking together
     private static class BookingRecord {
         String lectureId;
         Booking booking;
