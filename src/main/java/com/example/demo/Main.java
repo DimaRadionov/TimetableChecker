@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.data.Curriculum;
 import com.example.demo.data.Lecture;
 import com.example.demo.data.University;
+import com.example.demo.logic.ConflictChecker;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
